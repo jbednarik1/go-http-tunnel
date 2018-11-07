@@ -16,6 +16,7 @@ import (
 // RegistryItem holds information about hosts and listeners associated with a
 // client.
 type RegistryItem struct {
+	Tag       string
 	Hosts     []*HostAuth
 	Listeners []net.Listener
 }
