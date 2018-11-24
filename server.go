@@ -14,6 +14,7 @@ import (
 	"io/ioutil"
 	"net"
 	"net/http"
+	"regexp"
 	"strings"
 	"time"
 
@@ -22,6 +23,10 @@ import (
 	"github.com/mmatczuk/go-http-tunnel/id"
 	"github.com/mmatczuk/go-http-tunnel/log"
 	"github.com/mmatczuk/go-http-tunnel/proto"
+)
+
+var (
+	zeroPortRe *regexp.Regexp = regexp.MustCompile("^0+$")
 )
 
 // ServerConfig defines configuration for the Server.
@@ -41,6 +46,8 @@ type ServerConfig struct {
 	Logger log.Logger
 
 	HeartbeatInterval time.Duration
+
+	StartPort uint64
 }
 
 // Server is responsible for proxying public connections to the client over a
@@ -68,7 +75,7 @@ func NewServer(config *ServerConfig) (*Server, error) {
 	}
 
 	s := &Server{
-		registry: newRegistry(logger),
+		registry: newRegistry(logger, config.StartPort),
 		config:   config,
 		listener: listener,
 		logger:   logger,
@@ -113,12 +120,16 @@ func (s *Server) doDisconnect(identifier id.ID, i *RegistryItem) {
 		)
 		l.Close()
 	}
+
+	for _, port := range i.Ports {
+		s.registry.portPool.Put(port)
+	}
 }
 
 // disconnected clears resources used by client, it's invoked by connection pool
 // when client goes away.
 func (s *Server) disconnected(identifier id.ID) {
-	i := s.registry.clear(identifier)
+	i := s.registry.clear(identifier, "")
 	if i == nil {
 		return
 	}
@@ -133,21 +144,19 @@ func (s *Server) disconnected(identifier id.ID) {
 }
 
 func (s *Server) disconnectedWithTag(identifier id.ID, tag string) {
-	i := s.registry.clear(identifier)
+	i := s.registry.clear(identifier, tag)
 	if i == nil {
 		return
 	}
 
-	if i.Tag == tag {
-		s.logger.Log(
-			"level", 1,
-			"action", "disconnected",
-			"identifier", identifier,
-			"tag", tag,
-		)
+	s.logger.Log(
+		"level", 1,
+		"action", "disconnected",
+		"identifier", identifier,
+		"tag", tag,
+	)
 
-		s.doDisconnect(identifier, i)
-	}
+	s.doDisconnect(identifier, i)
 }
 
 // Start starts accepting connections form clients. For accepting http traffic
@@ -344,6 +353,7 @@ func (s *Server) handleClient(conn net.Conn) {
 	logger.Log(
 		"level", 1,
 		"action", "connected",
+		"hostname", "["+resp.Header.Get(proto.HeaderHostname)+"]",
 	)
 
 	go func() {
@@ -449,29 +459,59 @@ func (s *Server) addTunnels(tunnels map[string]*proto.Tunnel, identifier id.ID, 
 	i := &RegistryItem{
 		Tag:       tag,
 		Hosts:     []*HostAuth{},
-		Listeners: []net.Listener{},
+		Listeners: []Listener{},
+		Ports:     []uint64{},
 	}
 
-	var err error
+	var (
+		l          net.Listener
+		err        error
+		tunnelName string
+	)
+
 	for name, t := range tunnels {
 		switch t.Protocol {
 		case proto.HTTP:
 			i.Hosts = append(i.Hosts, &HostAuth{t.Host, NewAuth(t.Auth)})
 		case proto.TCP, proto.TCP4, proto.TCP6, proto.UNIX:
-			var l net.Listener
-			l, err = net.Listen(t.Protocol, t.Addr)
-			if err != nil {
-				goto rollback
+			idx := strings.Index(t.RemoteAddr, ":")
+			if idx > 0 && zeroPortRe.MatchString(t.RemoteAddr[idx+1:]) {
+				host := t.RemoteAddr[:idx]
+				for {
+					port := s.registry.portPool.Get()
+					addr := fmt.Sprintf("%s:%d", host, port)
+
+					l, err = net.Listen(t.Protocol, addr)
+					if err != nil {
+						s.logger.Log(
+							"level", 0,
+							"msg", "listen failed",
+							"addr", addr,
+							"err", err,
+						)
+						continue
+					}
+
+					t.RemoteAddr = addr
+					i.Ports = append(i.Ports, port)
+					break
+				}
+			} else {
+				l, err = net.Listen(t.Protocol, t.RemoteAddr)
+				if err != nil {
+					goto rollback
+				}
 			}
 
 			s.logger.Log(
-				"level", 2,
+				"level", 1,
 				"action", "open listener",
 				"identifier", identifier,
 				"addr", l.Addr(),
 			)
 
-			i.Listeners = append(i.Listeners, l)
+			tunnelName = name
+			i.Listeners = append(i.Listeners, Listener{l, tunnelName})
 		default:
 			err = fmt.Errorf("unsupported protocol for tunnel %s: %s", name, t.Protocol)
 			goto rollback
@@ -509,7 +549,7 @@ func (s *Server) Ping(identifier id.ID) (time.Duration, error) {
 	return s.connPool.Ping(identifier)
 }
 
-func (s *Server) listen(l net.Listener, identifier id.ID) {
+func (s *Server) listen(l Listener, identifier id.ID) {
 	addr := l.Addr().String()
 
 	for {
@@ -537,7 +577,7 @@ func (s *Server) listen(l net.Listener, identifier id.ID) {
 
 		msg := &proto.ControlMessage{
 			Action:         proto.ActionProxy,
-			ForwardedHost:  l.Addr().String(),
+			ForwardedHost:  l.TunnelName,
 			ForwardedProto: l.Addr().Network(),
 		}
 
