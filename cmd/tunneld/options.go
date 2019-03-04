@@ -19,12 +19,6 @@ Example:
 	tuneld
 	tuneld -clients YMBKT3V-ESUTZ2Z-7MRILIJ-T35FHGO-D2DHO7D-FXMGSSR-V4LBSZX-BNDONQ4
 	tuneld -httpAddr :8080 -httpsAddr ""
-
-Author:
-	Written by M. Matczuk (mmatczuk@gmail.com)
-
-Bugs:
-	Submit bugs to https://github.com/mmatczuk/go-http-tunnel/issues
 `
 
 func init() {

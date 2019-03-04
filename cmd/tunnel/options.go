@@ -38,12 +38,6 @@ config.yaml:
 	    proto: tcp
 	    addr: 192.168.0.5:22
 	    remote_addr: 0.0.0.0:22
-
-Author:
-	Written by M. Matczuk (mmatczuk@gmail.com)
-
-Bugs:
-	Submit bugs to https://github.com/mmatczuk/go-http-tunnel/issues
 `
 
 func init() {
