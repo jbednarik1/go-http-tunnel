@@ -8,16 +8,15 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
+	"go-http-tunnel"
+	"go-http-tunnel/id"
+	"go-http-tunnel/log"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"strings"
 
 	"golang.org/x/net/http2"
-
-	"github.com/mmatczuk/go-http-tunnel"
-	"github.com/mmatczuk/go-http-tunnel/id"
-	"github.com/mmatczuk/go-http-tunnel/log"
 )
 
 func main() {
@@ -41,10 +40,12 @@ func main() {
 
 	// setup server
 	server, err := tunnel.NewServer(&tunnel.ServerConfig{
-		Addr:          opts.tunnelAddr,
-		AutoSubscribe: autoSubscribe,
-		TLSConfig:     tlsconf,
-		Logger:        logger,
+		Addr:              opts.tunnelAddr,
+		HeartbeatInterval: opts.heartbeatInterval,
+		StartPort:         opts.startPort,
+		AutoSubscribe:     autoSubscribe,
+		TLSConfig:         tlsconf,
+		Logger:            logger,
 	})
 	if err != nil {
 		fatal("failed to create server: %s", err)

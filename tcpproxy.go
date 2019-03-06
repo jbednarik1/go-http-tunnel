@@ -5,12 +5,11 @@
 package tunnel
 
 import (
-	"fmt"
 	"io"
 	"net"
 
-	"github.com/mmatczuk/go-http-tunnel/log"
-	"github.com/mmatczuk/go-http-tunnel/proto"
+	"go-http-tunnel/log"
+	"go-http-tunnel/proto"
 )
 
 // TCPProxy forwards TCP streams.
@@ -118,28 +117,12 @@ func (p *TCPProxy) Proxy(w io.Writer, r io.ReadCloser, msg *proto.ControlMessage
 	<-done
 }
 
-func (p *TCPProxy) localAddrFor(hostPort string) string {
+// Remote address or tunnel name
+func (p *TCPProxy) localAddrFor(host string) string {
 	if len(p.localAddrMap) == 0 {
 		return p.localAddr
 	}
 
-	// try hostPort
-	if addr := p.localAddrMap[hostPort]; addr != "" {
-		return addr
-	}
-
-	// try port
-	host, port, _ := net.SplitHostPort(hostPort)
-	if addr := p.localAddrMap[port]; addr != "" {
-		return addr
-	}
-
-	// try 0.0.0.0:port
-	if addr := p.localAddrMap[fmt.Sprintf("0.0.0.0:%s", port)]; addr != "" {
-		return addr
-	}
-
-	// try host
 	if addr := p.localAddrMap[host]; addr != "" {
 		return addr
 	}

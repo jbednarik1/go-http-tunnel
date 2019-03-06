@@ -1,6 +1,7 @@
 ### Tunnel
 .tunnel/
 build/
+bin/
 
 ### Go
 *.cov
