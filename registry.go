@@ -10,8 +10,8 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"go-http-tunnel/id"
-	"go-http-tunnel/log"
+	"github.com/jbednarik1/go-http-tunnel/id"
+	"github.com/jbednarik1/go-http-tunnel/log"
 )
 
 type PortPool struct {

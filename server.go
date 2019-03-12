@@ -20,13 +20,13 @@ import (
 
 	"golang.org/x/net/http2"
 
-	"go-http-tunnel/id"
-	"go-http-tunnel/log"
-	"go-http-tunnel/proto"
+	"github.com/jbednarik1/go-http-tunnel/id"
+	"github.com/jbednarik1/go-http-tunnel/log"
+	"github.com/jbednarik1/go-http-tunnel/proto"
 )
 
 var (
-	zeroPortRe *regexp.Regexp = regexp.MustCompile("^0+$")
+	zeroPortRe = regexp.MustCompile("^0+$")
 )
 
 // ServerConfig defines configuration for the Server.
@@ -222,7 +222,7 @@ func (s *Server) handleClient(conn net.Conn) {
 
 		inConnPool bool
 
-		tag string = time.Now().String()
+		tag = time.Now().String()
 	)
 
 	tlsConn, ok := conn.(*tls.Conn)
@@ -400,7 +400,7 @@ func (s *Server) handleClient(conn net.Conn) {
 
 		ticker := time.NewTicker(s.config.HeartbeatInterval)
 
-		for _ = range ticker.C {
+		for range ticker.C {
 			if !s.IsSubscribed(identifier) {
 				return
 			}

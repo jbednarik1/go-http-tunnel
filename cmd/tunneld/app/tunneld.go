@@ -2,15 +2,15 @@
 // Use of this source code is governed by an AGPL-style
 // license that can be found in the LICENSE file.
 
-package main
+package app
 
 import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
-	"go-http-tunnel"
-	"go-http-tunnel/id"
-	"go-http-tunnel/log"
+	"github.com/jbednarik1/go-http-tunnel"
+	"github.com/jbednarik1/go-http-tunnel/id"
+	"github.com/jbednarik1/go-http-tunnel/log"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -19,7 +19,7 @@ import (
 	"golang.org/x/net/http2"
 )
 
-func main() {
+func Run() {
 	opts := parseArgs()
 
 	if opts.version {

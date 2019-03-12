@@ -8,8 +8,8 @@ import (
 	"io"
 	"net"
 
-	"go-http-tunnel/log"
-	"go-http-tunnel/proto"
+	"github.com/jbednarik1/go-http-tunnel/log"
+	"github.com/jbednarik1/go-http-tunnel/proto"
 )
 
 // TCPProxy forwards TCP streams.

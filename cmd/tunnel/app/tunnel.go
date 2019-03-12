@@ -2,16 +2,16 @@
 // Use of this source code is governed by an AGPL-style
 // license that can be found in the LICENSE file.
 
-package main
+package app
 
 import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
-	"go-http-tunnel"
-	"go-http-tunnel/id"
-	"go-http-tunnel/log"
-	"go-http-tunnel/proto"
+	"github.com/jbednarik1/go-http-tunnel"
+	"github.com/jbednarik1/go-http-tunnel/id"
+	"github.com/jbednarik1/go-http-tunnel/log"
+	"github.com/jbednarik1/go-http-tunnel/proto"
 	"io/ioutil"
 	"net"
 	"net/url"
@@ -23,7 +23,7 @@ import (
 	"github.com/cenkalti/backoff"
 )
 
-func main() {
+func Run() {
 	opts, err := parseArgs()
 	if err != nil {
 		fatal(err.Error())

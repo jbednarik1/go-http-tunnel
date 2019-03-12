@@ -2,6 +2,7 @@
 // Use of this source code is governed by an AGPL-style
 // license that can be found in the LICENSE file.
 
-package main
+package app
 
-var version = "snapshot"
+const banner = `
+`
