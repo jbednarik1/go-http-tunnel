@@ -1,0 +1,7 @@
+server_addr: localhost:5223
+tunnels:
+  webui:
+    proto: http
+    addr: localhost:5000
+    host: l1.my
+

@@ -23,5 +23,6 @@ type Tunnel struct {
 	Addr string
 	// Addr specifies TCP address server would listen on, it's required
 	// for TCP tunnels.
-	RemoteAddr string
+	RemoteAddr   string
+	AllowedPaths []string
 }

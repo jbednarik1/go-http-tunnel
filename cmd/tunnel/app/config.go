@@ -37,11 +37,12 @@ type BackoffConfig struct {
 
 // Tunnel defines a tunnel.
 type Tunnel struct {
-	Protocol   string `yaml:"proto,omitempty"`
-	Addr       string `yaml:"addr,omitempty"`
-	Auth       string `yaml:"auth,omitempty"`
-	Host       string `yaml:"host,omitempty"`
-	RemoteAddr string `yaml:"remote_addr,omitempty"`
+	Protocol     string   `yaml:"proto,omitempty"`
+	Addr         string   `yaml:"addr,omitempty"`
+	Auth         string   `yaml:"auth,omitempty"`
+	Host         string   `yaml:"host,omitempty"`
+	RemoteAddr   string   `yaml:"remote_addr,omitempty"`
+	AllowedPaths []string `yaml:"allowed_paths,omitempty"`
 }
 
 // ClientConfig is a tunnel client configuration.

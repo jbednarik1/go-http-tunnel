@@ -159,12 +159,13 @@ func tunnels(m map[string]*Tunnel) map[string]*proto.Tunnel {
 
 	for name, t := range m {
 		p[name] = &proto.Tunnel{
-			Name:       name,
-			Protocol:   t.Protocol,
-			Host:       t.Host,
-			Auth:       t.Auth,
-			Addr:       t.Addr,
-			RemoteAddr: t.RemoteAddr,
+			Name:         name,
+			Protocol:     t.Protocol,
+			Host:         t.Host,
+			Auth:         t.Auth,
+			Addr:         t.Addr,
+			RemoteAddr:   t.RemoteAddr,
+			AllowedPaths: t.AllowedPaths,
 		}
 	}
 

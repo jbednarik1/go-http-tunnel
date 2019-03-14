@@ -472,7 +472,7 @@ func (s *Server) addTunnels(tunnels map[string]*proto.Tunnel, identifier id.ID, 
 	for name, t := range tunnels {
 		switch t.Protocol {
 		case proto.HTTP:
-			i.Hosts = append(i.Hosts, &HostAuth{t.Host, NewAuth(t.Auth)})
+			i.Hosts = append(i.Hosts, &HostAuth{t.Host, NewAuth(t.Auth), t.AllowedPaths})
 		case proto.TCP, proto.TCP4, proto.TCP6, proto.UNIX:
 			idx := strings.Index(t.RemoteAddr, ":")
 			if idx > 0 && zeroPortRe.MatchString(t.RemoteAddr[idx+1:]) {
@@ -607,6 +607,24 @@ func (s *Server) listen(l Listener, identifier id.ID) {
 
 // ServeHTTP proxies http connection to the client.
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+
+	hostInfo := s.hosts[r.Host]
+	isAllowed := true
+	if hostInfo.allowedPaths != nil && len(hostInfo.allowedPaths) > 0 {
+		isAllowed = false
+		for _, value := range hostInfo.allowedPaths {
+			if strings.HasPrefix(r.URL.Path, value) {
+				isAllowed = true
+			}
+		}
+	}
+
+	if !isAllowed {
+		w.Header().Set("WWW-Authenticate", "Basic realm=\"User Visible Realm\"")
+		http.Error(w, fmt.Sprintf("path is not allowed: %s", r.URL.Path), http.StatusForbidden)
+		return
+	}
+
 	resp, err := s.RoundTrip(r)
 	if err == errUnauthorised {
 		w.Header().Set("WWW-Authenticate", "Basic realm=\"User Visible Realm\"")

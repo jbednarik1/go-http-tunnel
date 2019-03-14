@@ -60,13 +60,15 @@ type RegistryItem struct {
 
 // HostAuth holds host and authentication info.
 type HostAuth struct {
-	Host string
-	Auth *Auth
+	Host         string
+	Auth         *Auth
+	AllowedPaths []string
 }
 
 type hostInfo struct {
-	identifier id.ID
-	auth       *Auth
+	identifier   id.ID
+	auth         *Auth
+	allowedPaths []string
 }
 
 type registry struct {
@@ -188,8 +190,9 @@ func (r *registry) set(i *RegistryItem, identifier id.ID) error {
 
 		for _, h := range i.Hosts {
 			r.hosts[trimPort(h.Host)] = &hostInfo{
-				identifier: identifier,
-				auth:       h.Auth,
+				identifier:   identifier,
+				auth:         h.Auth,
+				allowedPaths: h.AllowedPaths,
 			}
 		}
 	}
